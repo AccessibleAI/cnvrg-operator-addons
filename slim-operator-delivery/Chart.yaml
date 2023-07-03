@@ -1,0 +1,60 @@
+apiVersion: v2
+name: slim-operator-delivery
+description: A Helm chart for deploying cnvrg app, operator and dependencies
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+
+dependencies:
+- name: pgo
+  version: "5.3.1"
+  repository: "oci://registry.developers.crunchydata.com/crunchydata"
+  condition: pgo.enabled
+
+- name: kube-prometheus-stack
+  version: "45.7.1"
+  repository: "https://prometheus-community.github.io/helm-charts"
+  condition: kube-prometheus-stack.enabled
+
+# cnvrg.io Helm Charts: app and operator
+- name: cnvrg-operator
+  version: "4.3.22-DEV-15047-slim-cnvrg-101"
+  repository: "file:///Users/bsoper/Documents/code/cnvrg_io/cnvrg_delivery/slim-cnvrg-operator/cnvrg-operator/charts/cnvrg-operator"
+  condition: cnvrg-operator.enabled
+  tags:
+  - cnvrg
+
+- name: cnvrg-cap
+  version: "4.3.22"
+  repository: "file:///Users/bsoper/Documents/code/cnvrg_io/cnvrg_delivery/slim-cnvrg-operator/cnvrg-operator/charts/cnvrg-cap"
+  condition: cnvrg-operator.enabled
+  tags:
+  - cnvrg
+
+# Istio Helm Charts: base, istiod and gateway
+- name: base
+  version: "1.17.2"
+  repository: "https://istio-release.storage.googleapis.com/charts"
+  condition: base.enabled
+  tags:
+  - istio
+
+- name: istiod
+  version: "1.17.2"
+  repository: "https://istio-release.storage.googleapis.com/charts"
+  condition: base.enabled
+  tags:
+  - istio
+
+- name: gateway
+  version: "1.17.2"
+  repository: "https://istio-release.storage.googleapis.com/charts"
+  condition: base.enabled
+  tags:
+  - istio
+
+# Helm chart for nginx
+- name: ingress-nginx
+  version: "4.7.0"
+  repository: "https://kubernetes.github.io/ingress-nginx"
+  condition: ingress-nginx.enabled

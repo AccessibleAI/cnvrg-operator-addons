@@ -1,0 +1,114 @@
+##########################################
+# cnvrg.io Helm Charts: app and operator #
+##########################################
+cnvrg-operator:
+  # -- Set to true to enabled deployment of cnvrg app and operator
+  enabled: false
+  # -- Configurable values for cnvrg operator
+  registry:
+    url: docker.io
+    user: cnvrghelm
+    password: ''
+
+cnvrg-cap:
+  # -- Configurable values for cnvrg app
+  clusterDomain:
+  controlPlane:
+    image: cnvrg/app:v4.7.52-DEV-15824-cnvrg-agnostic-infra-26
+  networking:
+    ingress:
+      type: ingress
+  registry:
+    user: cnvrghelm
+    password: ''
+
+############################
+# Nginx Ingress Helm Chart #
+############################
+ingress-nginx:
+  # -- Set to true to enabled deployment of nginx ingress
+  enabled: false
+  # -- Configurable values for ingress nginx
+  controller:
+    ingressClassResource:
+      # -- Name of the ingressClass
+      name: nginx
+      # -- Is this ingressClass enabled or not
+      enabled: true
+      # -- Is this the default ingressClass for the cluster
+      default: true
+    service:
+      # -- List of IP addresses at which the controller services are available
+      # -- Ref: https://kubernetes.io/docs/user-guide/services/#external-ips
+      externalIPs:
+        - 172.31.21.239
+      # -- Used by cloud providers to connect the resulting `LoadBalancer` to a pre-existing static IP according to https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer
+      loadBalancerIP: ""
+      loadBalancerSourceRanges: []
+      enableHttp: true
+      enableHttps: true
+
+###############################################
+# Istio Helm Charts: base, istiod and gateway #
+###############################################
+base:
+  # -- Set to true to deploy istio base, istiod and gateway
+  enabled: false
+
+istiod:
+  global:
+    # -- Used to locate istiod.
+    istioNamespace: istio-system
+
+gateway:
+  # -- Configurable values for the gateway chart
+  service:
+    type: LoadBalancer
+    annotations: {}
+    loadBalancerIP: ""
+    loadBalancerSourceRanges: []
+    externalTrafficPolicy: ""
+    externalIPs:
+      - 172.31.28.6
+
+###########################################
+# Prometheus and Grafana stack Helm Chart #
+###########################################
+kube-prometheus-stack:
+  # -- Set to true to deploy Prometheus and Grafana
+  enabled: false
+  # -- Configurable values for Prometheus/Grafana stack
+  prometheusSpec:
+    storageSpec:
+      volumeClaimTemplate:
+        metadata:
+          name: data
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 10Gi
+
+###################################
+# Crunchydata Postgres Helm Chart #
+###################################
+pgo:
+  # -- Set to true to deploy crunchydata postgres chart
+  enabled: false
+  # -- Configurable values for the crunchydata postgres custom resource
+  image: docker.io/cnvrg/crunchy:postgres-ubi8-13.9-2
+  postgresVersion: 13
+  instances:
+    name: pgha
+    replicas: 3
+    storageSize: 10Gi
+  backup:
+    name: repo1
+    storageSize: 5Gi
+  proxy:
+    replicas: 2
+
+
+
+
+

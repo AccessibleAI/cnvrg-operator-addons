@@ -1,0 +1,69 @@
+{{- if .Values.pgo.enabled }}
+apiVersion: postgres-operator.crunchydata.com/v1beta1
+kind: PostgresCluster
+metadata:
+  name: cnvrg-production
+  namespace: {{ .Release.Namespace }}
+spec:
+  image: {{ .Values.pgo.image }}
+  postgresVersion: {{ .Values.pgo.postgresVersion }}
+  patroni:
+    dynamicConfiguration:
+      postgresql:
+        parameters:
+          max_connections: 500
+          shared_buffers: 2GB
+          effective_cache_size: 4GB
+  users:
+  - name: cnvrg
+    options: "SUPERUSER"
+    databases:
+    - cnvrg_production
+    password:
+      type: AlphaNumeric
+  instances:
+    - name: {{ .Values.pgo.instances.name }}
+      replicas: {{ .Values.pgo.instances.replicas }}
+      dataVolumeClaimSpec:
+        accessModes:
+        - "ReadWriteOnce"
+        resources:
+          requests:
+            storage: {{ .Values.pgo.instances.storageSize }}
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 1
+            podAffinityTerm:
+              topologyKey: kubernetes.io/hostname
+              labelSelector:
+                matchLabels:
+                  postgres-operator.crunchydata.com/cluster: hippo-ha
+                  postgres-operator.crunchydata.com/instance-set: {{ .Values.pgo.instances.name }}
+  backups:
+    pgbackrest:
+      image: registry.developers.crunchydata.com/crunchydata/crunchy-pgbackrest:ubi8-2.41-2
+      repos:
+      - name: {{ .Values.pgo.backup.name }}
+        volume:
+          volumeClaimSpec:
+            accessModes:
+            - "ReadWriteOnce"
+            resources:
+              requests:
+                storage: {{ .Values.pgo.backup.storageSize }}
+  proxy:
+    pgBouncer:
+      image: registry.developers.crunchydata.com/crunchydata/crunchy-pgbouncer:ubi8-1.17-5
+      replicas: {{ .Values.pgo.proxy.replicas }}
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 1
+            podAffinityTerm:
+              topologyKey: kubernetes.io/hostname
+              labelSelector:
+                matchLabels:
+                  postgres-operator.crunchydata.com/cluster: hippo-ha
+                  postgres-operator.crunchydata.com/role: pgbouncer
+{{- end }}
