@@ -7,7 +7,7 @@ cnvrg-operator:
   # -- Configurable values for cnvrg operator
   registry:
     url: docker.io
-    user: cnvrghelm
+    user: ''
     password: ''
 
 cnvrg-cap:
@@ -19,7 +19,7 @@ cnvrg-cap:
     ingress:
       type: ingress
   registry:
-    user: cnvrghelm
+    user: ''
     password: ''
 
 ############################
